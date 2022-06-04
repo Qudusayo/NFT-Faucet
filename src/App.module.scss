@@ -1,0 +1,101 @@
+.App {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 80%;
+  margin: 10em auto;
+
+  div {
+    &:nth-of-type(1) {
+      text-align: left;
+    }
+
+    height: 400px;
+    flex: 1;
+    text-align: center;
+
+    .AppDisplay {
+      width: 30em;
+      border-radius: 12px;
+      box-shadow: #8247e5 0px 2px 4px 10px, #8247e5 0px 2px 16px 10px;
+    }
+
+    .AppForm {
+      display: flex;
+      flex-direction: column;
+
+      h2 {
+        font-size: 3em;
+        color: #8247e5;
+      }
+
+      input {
+        display: block;
+      }
+
+      input[type="text"] {
+        outline: none;
+        border: none;
+        border: 1px solid #8247e5;
+        color: #8247e5;
+        border-radius: 7px;
+        font-size: 1.5em;
+        padding: 0.3em 1em;
+        box-sizing: border-box;
+        height: 80px;
+        width: 100%;
+        margin: 0.3em 0;
+      }
+
+      input[type="submit"] {
+        margin-top: 2em;
+        font-size: 2em;
+        text-align: center;
+        outline: none;
+        border: none;
+        border-radius: 7px;
+        text-transform: capitalize;
+        height: 70px;
+        padding: 0 1em;
+        background-color: #8247e5;
+        color: #ffffff;
+        cursor: pointer;
+      }
+
+      .controlBlock {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 2em;
+
+        input,
+        button {
+          width: 30%;
+          height: 80px;
+          text-align: center;
+        }
+
+        input:disabled {
+          font-size: 2em;
+          outline: none;
+          border: none;
+          border: 1px solid #dedede;
+          border-radius: 7px;
+        }
+
+        button {
+          font-size: 5em;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          outline: none;
+          border: none;
+          border-radius: 7px;
+          background-color: #8247e5;
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}
