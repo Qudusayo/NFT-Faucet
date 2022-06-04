@@ -1,19 +1,17 @@
+require("dotenv").config();
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+describe("NFTFaucet", function () {
+  it("Should return the MultiFaucet NFT address", async function () {
+    const NFTFaucet = await ethers.getContractFactory("NFTFaucet");
+    const nftFaucet = await NFTFaucet.deploy(
+      process.env.MULTIFAUCETNFT_ADDRESS
+    );
+    await nftFaucet.deployed();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
-
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
-
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    expect(await nftFaucet.multiFaucetContract()).to.equal(
+      process.env.MULTIFAUCETNFT_ADDRESS
+    );
   });
 });
