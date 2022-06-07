@@ -1,35 +1,38 @@
 import Banner from "./assets/NFT_FAUCET.png";
 import styles from "./App.module.scss";
-import { useEffect, useState } from "react";
-import console from "console-browserify";
+import { useState } from "react";
+// import console from "console-browserify";
 import WAValidator from "multicoin-address-validator/dist/wallet-address-validator";
-import Navbar from "./Components/Navbar/Navbar";
-import contractABI from "./artifacts/contracts/NFTFaucet.sol/NFTFaucet.json";
-import { useChain, useMoralis, useWeb3ExecuteFunction } from "react-moralis";
-import useMetamask from "./Hooks/useMetamask.js";
+import { useMoralis, useMoralisCloudFunction } from "react-moralis";
 import ChainBanner from "./Components/ChainBanner/ChainBanner";
 import Footer from "./Components/Footer/Footer";
+import { useNotification } from "web3uikit";
+import Loader from "./Components/Loader/Loader";
 
 function App() {
   const [unit, setUnit] = useState(1);
   const [recipient, setRecipient] = useState("");
   const [invalidAddress, setInvalidAddress] = useState(false);
-  const { fetch } = useWeb3ExecuteFunction();
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
-  const { isAuthenticated, Moralis, isWeb3Enabled, enableWeb3 } = useMoralis();
-  const { chainId } = useChain();
-  const isMetaMaskInstalled = useMetamask();
-  const supportedChain = process.env.REACT_APP_SUPPORTED_CHAIN_ID;
+  const [isMinting, setIsMinting] = useState(false);
+  const { fetch } = useMoralisCloudFunction(
+    "mint_nft",
+    {
+      recipient,
+      amount: unit,
+    },
+    { autoFetch: false }
+  );
+  const { isInitialized } = useMoralis();
+  const dispatch = useNotification();
 
-  useEffect(() => {
-    if (!isWeb3Enabled && isAuthenticated) {
-      if (isMetaMaskInstalled) {
-        enableWeb3();
-      } else {
-        enableWeb3({ provider: "walletconnect" });
-      }
-    }
-  }, [isWeb3Enabled, isAuthenticated]);
+  const handleNewNotification = (type, message, title) => {
+    dispatch({
+      type,
+      message,
+      title,
+      position: "topR",
+    });
+  };
 
   const setRecipientHandler = (e) => {
     let address = e.target.value;
@@ -39,7 +42,7 @@ function App() {
     setInvalidAddress(!isValidAddress);
   };
 
-  const setUnittHandler = (direction) => {
+  const setUnitHandler = (direction) => {
     if (direction === "+" && unit < 10) {
       setUnit(unit + 1);
     } else if (direction === "-" && unit > 1) {
@@ -54,42 +57,50 @@ function App() {
       return setInvalidAddress(!isValidAddress);
     }
 
-    let params = {
-      _amount: unit,
-      _dest: recipient,
-    };
-
-    let options = {
-      contractAddress,
-      functionName: "mint",
-      abi: contractABI.abi,
-      params,
-    };
-    // console.log(options);
+    setIsMinting(true);
 
     fetch({
-      params: options,
-      onSuccess: (tx) => {
-        console.log(tx);
-        return tx.wait().then((newTx) => {
-          console.log(newTx);
-        });
+      onSuccess: (res) => {
+        // console.log(res);
+
+        if (res) {
+          handleNewNotification(
+            "success",
+            `${unit} NFTs has been successfully sent to ${recipient}`,
+            "NFT mint successful"
+          );
+          setUnit(1);
+          setRecipient("");
+        } else {
+          handleNewNotification(
+            "error",
+            `Seems Limit reached, you could try with a lower amount or try in 1 hour time`,
+            "Error sending NFT"
+          );
+        }
+        return setIsMinting(false);
       },
-      onError: (error) => {
-        console.log(error);
+      onError: (err) => {
+        // console.log(err);
+
+        handleNewNotification(
+          "error",
+          `Seems Limit reached, you could try with a lower amount or try in 1 hour time`,
+          "Error sending NFT"
+        );
+        return setIsMinting(false);
       },
     });
   };
 
   return (
     <>
-      <ChainBanner chain={chainId} />
-      <Navbar />
+      <ChainBanner />
       <div className={styles.App}>
-        <div>
+        <div className={styles.AppDiv}>
           <img src={Banner} className={styles.AppDisplay} alt="logo" />
         </div>
-        <div>
+        <div className={styles.AppDiv}>
           <form className={styles.AppForm} onSubmit={nftClaimHandler}>
             <h2>Get Some Test NFT</h2>
             <input
@@ -98,14 +109,15 @@ function App() {
               value={recipient}
               className={invalidAddress ? styles.dangerous : null}
               autoCorrect="false"
-              disabled={!isAuthenticated}
+              disabled={!isInitialized || isMinting}
               placeholder={"0x00000000000000000000000000000000...."}
             />
             <div className={styles.controlBlock}>
               <button
+                className={styles.controlBtn}
                 type="button"
-                onClick={() => setUnittHandler("-")}
-                disabled={!isAuthenticated}
+                onClick={() => setUnitHandler("-")}
+                disabled={!isInitialized || isMinting}
               >
                 -
               </button>
@@ -116,17 +128,21 @@ function App() {
                 disabled
               />
               <button
+                className={styles.controlBtn}
                 type="button"
-                onClick={() => setUnittHandler("+")}
-                disabled={!isAuthenticated}
+                onClick={() => setUnitHandler("+")}
+                disabled={!isInitialized || isMinting}
               >
                 +
               </button>
             </div>
-            <input
+            <button
               type={"submit"}
-              disabled={!isAuthenticated || chainId !== supportedChain}
-            />
+              id={styles.submit}
+              disabled={!isInitialized || isMinting}
+            >
+              {isMinting ? <Loader /> : "Submit"}
+            </button>
           </form>
         </div>
       </div>

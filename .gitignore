@@ -20,9 +20,7 @@
 .env.production.local
 
 cache
-src/artifacts/build-info
-src/artifacts/@openzeppelin
-src/artifacts/contracts/MultiFaucetNFT.sol
+artifacts
 
 npm-debug.log*
 yarn-debug.log*
